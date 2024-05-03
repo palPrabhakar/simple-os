@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 static bool print(const char* data, size_t length) {
 	const unsigned char* bytes = (const unsigned char*) data;
@@ -10,6 +11,27 @@ static bool print(const char* data, size_t length) {
 		if (putchar(bytes[i]) == EOF)
 			return false;
 	return true;
+}
+
+// 32-bit kernel
+// map everything to 32-bits
+static size_t fill_buffer(uint32_t data, char *buffer) {
+  size_t i = 0;
+  while(data) {
+    buffer[i++] = data % 10 + (int)'0';
+    data = data / 10;
+  }
+  size_t l = 0;
+  size_t r = i - 1;
+  while(l < r) {
+    char temp = buffer[l];
+    buffer[l] = buffer[r];
+    buffer[r] = temp;
+    l++;
+    r--;
+  }
+
+  return i;
 }
 
 int printf(const char* restrict format, ...) {
@@ -61,7 +83,21 @@ int printf(const char* restrict format, ...) {
 			if (!print(str, len))
 				return -1;
 			written += len;
-		} else {
+		} else if (*format == 'u') {
+      format++;
+      const uint32_t digit = va_arg(parameters, const uint32_t);
+      char buffer[10];
+      size_t len = fill_buffer(digit, buffer);
+      // TODO
+			if (maxrem < len) {
+				// TODO: Set errno to EOVERFLOW.
+				return -1;
+			}
+      if(!print(buffer, len)) {
+        return -1;
+      }
+      written += len;
+    }else {
 			format = format_begun_at;
 			size_t len = strlen(format);
 			if (maxrem < len) {
