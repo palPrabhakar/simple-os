@@ -26,8 +26,15 @@ stack_top:
 _start:
 	movl $stack_top, %esp
 
+
+	/* Push the pointer to the Multiboot information structure. */
+        pushl %ebx
+        /* Push the magic value. */
+        pushl %eax
+
 	# Call the global constructors.
 	call _init
+
 
 	# Transfer control to the main kernel.
 	call kernel_main
