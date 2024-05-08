@@ -17,21 +17,20 @@ static bool print(const char *data, size_t length) {
 // map everything to 32-bits
 static size_t fill_buffer(uint32_t data, char *buffer, int base) {
   size_t i = 0;
-  while (data) {
-    int rem = data % base;
-    buffer[i++] = rem < 10 ? rem + '0' : rem + 'a' - 10;
-    data = data / base;
-  }
-  size_t l = 0;
-  size_t r = i - 1;
-  while (l < r) {
-    char temp = buffer[l];
-    buffer[l] = buffer[r];
-    buffer[r] = temp;
-    l++;
-    r--;
-  }
-
+    do {
+      int rem = data % base;
+      buffer[i++] = rem < 10 ? rem + '0' : rem + 'a' - 10;
+      data /= base;
+    } while(data);
+    size_t l = 0;
+    size_t r = i - 1;
+    while (l < r) {
+      char temp = buffer[l];
+      buffer[l] = buffer[r];
+      buffer[r] = temp;
+      l++;
+      r--;
+    }
   return i;
 }
 

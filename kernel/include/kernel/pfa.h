@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "multiboot.h"
+
 #define FREE 0x00
 #define USED 0x01
 #define ERROR UINT32_MAX
@@ -12,6 +14,7 @@
 
 typedef uint32_t pageframe_t;
 
+void pfa_initialize(uint32_t magic, uint32_t addr);
 pageframe_t kalloc_frame();
 void kfree_frame(pageframe_t a);
 

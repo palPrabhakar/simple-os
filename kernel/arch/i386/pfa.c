@@ -1,9 +1,8 @@
 #include <kernel/pfa.h>
-#include "multiboot.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+#define CHECK_FLAG(flags, bit) ((flags) & (1 << (bit)))
 
 // extern uint32_t endkernel;
 // static pageframe_t startframe = (pageframe_t)&endkernel;
@@ -13,22 +12,43 @@
 // static pageframe_t pre_frames[PRE];
 
 void pfa_initialize(uint32_t magic, uint32_t addr) {
-  printf("magic: %u\n", magic);
-  printf("addrs: %x\n", addr);
   multiboot_info_t *mbi;
 
-  if(magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-    printf("Invalid magic number: %u\n", magic);
+  if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    printf("Failed to initialized page frame allocator.\n");
     abort();
   }
 
   mbi = (multiboot_info_t *)addr;
 
-  printf("flags: %u\n", (unsigned) mbi->flags);
+  printf("flags: %u\n", (unsigned)mbi->flags);
 
-  if (CHECK_FLAG (mbi->flags, 0))
-    printf ("mem_lower = %uKB, mem_upper = %uKB\n",
-            (unsigned) mbi->mem_lower, (unsigned) mbi->mem_upper);
+  if (CHECK_FLAG(mbi->flags, 0)) {
+    printf("mem_lower = %uKB, mem_upper = %uKB\n", (unsigned)mbi->mem_lower,
+           (unsigned)mbi->mem_upper);
+  }
+
+  if (!CHECK_FLAG(mbi->flags, 6)) {
+    printf("Invalid memory map found.\n");
+    abort();
+  }
+
+  multiboot_memory_map_t *mmap;
+  printf("mmap_addr = %x, mmap_length = %x\n", (unsigned)mbi->mmap_addr,
+         (unsigned)mbi->mmap_length);
+
+  for (mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
+       (unsigned long)mmap < mbi->mmap_addr + mbi->mmap_length;
+       mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size +
+                                         sizeof(mmap->size))) {
+    // printf(" size = %x, base_addr = %x - %x,"
+    //        " length = %x - %x, type = %x\n",
+    //        (unsigned)mmap->size, (unsigned)(mmap->addr >> 32),
+    //        (unsigned)(mmap->addr & 0xffffffff), (unsigned)(mmap->len >> 32),
+    //        (unsigned)(mmap->len & 0xffffffff), (unsigned)mmap->type);
+
+    printf("size = %x, addr_low = %u, addr_end = %u, len_low = %u, type = %u\n", (uint32_t)mmap->size, (uint32_t)mmap->addr_low, (uint32_t)mmap->addr_low + mmap->len_low, (uint32_t)mmap->len_low, (uint32_t)mmap->type);
+  }
 }
 
 // static pageframe_t kalloc_frame_int() {
