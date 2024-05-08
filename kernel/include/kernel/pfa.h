@@ -1,5 +1,6 @@
 #ifndef _KERNEL_PFA_H
 #define _KERNEL_PFA_H
+// page frame allocator
 
 #include <stddef.h>
 #include <stdint.h>

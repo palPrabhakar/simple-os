@@ -1,11 +1,35 @@
 #include <kernel/pfa.h>
+#include "multiboot.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-extern uint32_t endkernel;
-static pageframe_t startframe = (pageframe_t)&endkernel;
-// Assuming the memory is always 4GB
-static uint32_t npages = 1024;
-// static uint8_t frame_map[npages] = {FREE};
-static pageframe_t pre_frames[PRE];
+#define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+
+// extern uint32_t endkernel;
+// static pageframe_t startframe = (pageframe_t)&endkernel;
+// // Assuming the memory is always 4GB
+// static uint32_t npages = 1024;
+// // static uint8_t frame_map[npages] = {FREE};
+// static pageframe_t pre_frames[PRE];
+
+void pfa_initialize(uint32_t magic, uint32_t addr) {
+  printf("magic: %u\n", magic);
+  printf("addrs: %x\n", addr);
+  multiboot_info_t *mbi;
+
+  if(magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    printf("Invalid magic number: %u\n", magic);
+    abort();
+  }
+
+  mbi = (multiboot_info_t *)addr;
+
+  printf("flags: %u\n", (unsigned) mbi->flags);
+
+  if (CHECK_FLAG (mbi->flags, 0))
+    printf ("mem_lower = %uKB, mem_upper = %uKB\n",
+            (unsigned) mbi->mem_lower, (unsigned) mbi->mem_upper);
+}
 
 // static pageframe_t kalloc_frame_int() {
 //   uint32_t i = 0;
