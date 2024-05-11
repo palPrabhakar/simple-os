@@ -48,9 +48,9 @@ _start:
 .size _start, . - _start
 
 .section .text 
-.global set_gdt
-.type set_gdt, @function
-set_gdt:
+.global load_gdt
+.type load_gdt, @function
+load_gdt:
 	mov 4(%esp), %eax
 	lgdt (%eax)
 	mov $0x10, %ax
@@ -62,3 +62,12 @@ set_gdt:
 	ljmp $0x08, $flush
 flush:
 	ret
+
+.section .text
+.global load_idt
+.type load_idt, @function
+load_idt:
+	mov 4(%esp), %eax
+	lidt (%eax)
+	ret
+

@@ -35,10 +35,10 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
   for (; (unsigned long)mmap < mbi->mmap_addr + mbi->mmap_length;
        mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size +
                                          sizeof(mmap->size))) {
-    printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type = %u\n",
-           (uint32_t)mmap->size, (uint32_t)mmap->addr_low,
-           (uint32_t)mmap->addr_low + mmap->len_low, (uint32_t)mmap->len_low,
-           (uint32_t)mmap->type);
+    // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type = %u\n",
+    //        (uint32_t)mmap->size, (uint32_t)mmap->addr_low,
+    //        (uint32_t)mmap->addr_low + mmap->len_low, (uint32_t)mmap->len_low,
+    //        (uint32_t)mmap->type);
 
     if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
       // check if addr_low is 4KB aligned
