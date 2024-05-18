@@ -3,8 +3,7 @@ isr_common_stub:
 	pusha
 
 	mov %ds, %ax
-	push %eax
-	call print_uint32_val
+	pushl %eax
 
 	mov $0x10, %ax
 	mov %ax, %ds
@@ -14,11 +13,7 @@ isr_common_stub:
 
 	call isr_handler
 
-	call print_uint32_val
-
 	popl %eax
-
-	mov $0x10, %ax
 
 	mov %ax, %ds
 	mov %ax, %es

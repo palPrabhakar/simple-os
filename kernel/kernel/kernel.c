@@ -25,8 +25,8 @@ void kernel_main(void) {
   // kfree_frame(frame1);
 
   printf("interrupting...\n");
-  // asm volatile("int $0x01");
+  asm volatile("int $0x01");
   asm volatile("int $0x02");
-  // asm volatile("int $0x03");
+  asm volatile("int $0x03");
   printf("interrupt done\n");
 }

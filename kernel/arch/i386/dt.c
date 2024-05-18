@@ -27,10 +27,6 @@ void init_descriptor_tables(void) {
   init_idt();
 }
 
-void test_descriptor_addr() {
-  printf("interrupt called\n");
-}
-
 static void init_gdt() {
   gdt_ptr.limit = (sizeof(gdt_entry_t)*5) - 1;
   gdt_ptr.base = (uint32_t)&gdt_entries;
