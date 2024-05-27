@@ -31,9 +31,7 @@ _start:
         /* Push the magic value. */
         pushl %eax
 
-	call terminal_initialize
-	call pfa_initialize
-	call init_descriptor_tables
+	call kernel_init
 
 	# Call the global constructors.
 	call _init
@@ -70,4 +68,3 @@ load_idt:
 	mov 4(%esp), %eax
 	lidt (%eax)
 	ret
-

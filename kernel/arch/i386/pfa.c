@@ -42,14 +42,14 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
 
     if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
       // check if addr_low is 4KB aligned
-      int32_t rem = mmap->addr_low % PAGE_SIZE;
+      int32_t rem = mmap->addr_low & 0xFFF;
       if (rem) {
         mmap->addr_low += PAGE_SIZE - rem;
         mmap->len_low -= PAGE_SIZE - rem;
       }
 
       // check if the end is at 4KB boundary
-      rem = (mmap->addr_low + mmap->len_low) % PAGE_SIZE;
+      rem = (mmap->addr_low + mmap->len_low) & 0xFFF;
       if (rem) {
         mmap->len_low -= rem;
       }
@@ -58,11 +58,16 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     }
   }
 
-  // In reality less bytes will be required
-  // Worst case scenario 1 extra page is wasted
+  // Extend the kernel size by the amount of memory required 
+  // to store the page frame data. Ideally no need to track 
+  // the pages used for storing the page frame data
   uint32_t kernel_start = (uint32_t)&startkernel;
   uint32_t kernel_end = (uint32_t)&endkernel + npages * 4;
-  kernel_end = kernel_end + (PAGE_SIZE - (kernel_end % PAGE_SIZE));
+  if(kernel_end & 0xFFF) {
+      kernel_end = kernel_end + (PAGE_SIZE - (kernel_end & 0xFFF));
+  }
+
+  // printf("kernel_start: %x, kernel_end: %x\n", kernel_start, kernel_end);
 
   // map memory to pages
   mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
