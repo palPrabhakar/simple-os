@@ -6,24 +6,84 @@
 .set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
 # Declare a header as in the Multiboot Standard.
-.section .multiboot
+.section .multiboot.data, "aw"
 .align 4
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
 
 # Reserve a stack for the initial thread.
-.section .bss
+.section .bootstrap_stack, "aw", @nobits
 .align 16
 stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
 
+.section .bss, "aw", @nobits
+.align 4096
+boot_page_directory:
+.skip 4096
+boot_page_table:
+.skip 4096
+
 # The kernel entry point.
-.section .text
+.section .multiboot.text, "a"
 .global _start
 .type _start, @function
 _start:
+	# edi = addr of boot_page_table
+	movl $(boot_page_table - 0xC0000000), %edi
+
+	movl $0, %esi    # esi = 0
+	movl $1024, %ecx # ecx = 1024
+
+1:
+	# Map everything including the first 1M
+	cmpl $(_kernel_end - 0xC0000000), %esi
+	jge 3f
+
+	# Map physical address as "present, writable"
+	# TODO: 
+	# Map .text and .rodata an readonly
+	movl %esi, %edx
+	orl $0x003, %edx
+	movl %edx, (%edi)
+
+2:
+	addl $4096, %esi
+	addl $4, %edi
+	loop 1b
+
+3:
+	# Identity map the page table
+	movl $(boot_page_table - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
+	# Map the page table to the higher half
+	movl $(boot_page_table - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768*4
+
+	# Set cr3 to the address of boot_page_directory
+	movl $(boot_page_directory - 0xC0000000), %ecx 
+	movl %ecx, %cr3
+
+	# Enable paging and write-protect bit 
+	movl %cr0, %ecx
+	orl $0x80010000, %ecx
+	movl %ecx, %cr0
+
+	# Jump to higher half with absolute jump
+	lea 4f, %ecx
+	jmp *%ecx
+
+.section .text
+
+4:
+	# Unmap the identity mapping
+	movl $0, boot_page_directory + 0
+
+	# Reload the cr3 to force TLB flush
+	movl %cr3, %ecx
+	movl %ecx, %cr3
+
+	# setup the stack
 	movl $stack_top, %esp
 
 	/* Push the pointer to the Multiboot information structure. */
@@ -43,7 +103,6 @@ _start:
 	cli
 1:	hlt
 	jmp 1b
-.size _start, . - _start
 
 .section .text 
 .global load_gdt
