@@ -3,7 +3,6 @@
 //
 
 #include <kernel/dt.h>
-#include <stdio.h>
 #include <string.h>
 
 // access assembly function from c code

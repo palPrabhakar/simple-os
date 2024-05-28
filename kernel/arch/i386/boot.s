@@ -13,7 +13,7 @@
 .long CHECKSUM
 
 # Reserve a stack for the initial thread.
-.section .bootstrap_stack, "aw", @nobits
+.section .bss, "aw", @nobits
 .align 16
 stack_bottom:
 .skip 16384 # 16 KiB
@@ -76,14 +76,8 @@ _start:
 .section .text
 
 4:
-	# Unmap the identity mapping
-	movl $0, boot_page_directory + 0
-
-	# Reload the cr3 to force TLB flush
-	movl %cr3, %ecx
-	movl %ecx, %cr3
-
 	# setup the stack
+	# stack is located after 0xC0000000
 	movl $stack_top, %esp
 
 	/* Push the pointer to the Multiboot information structure. */
@@ -91,7 +85,16 @@ _start:
         /* Push the magic value. */
         pushl %eax
 
+	# Setup PFA using identity mapping (IM)
+	# Easiest to access the multiboot info using IM
 	call kernel_init
+
+	# Unmap the identity mapping
+	movl $0, boot_page_directory + 0
+
+	# Reload the cr3 to force TLB flush
+	movl %cr3, %ecx
+	movl %ecx, %cr3
 
 	# Call the global constructors.
 	call _init

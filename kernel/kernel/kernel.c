@@ -7,13 +7,11 @@
 
 void kernel_init(uint32_t magic, uint32_t addr) {
   terminal_initialize();
-  // init_descriptor_tables();
-  // pfa_initialize(magic, addr);
+  init_descriptor_tables();
+  pfa_initialize(magic, addr);
 }
 
 void kernel_main(void) {
-  // initialize_paging();
-
   printf("\nHello, Kernel World.\n");
   printf("%s", "Simple OS.\n");
 

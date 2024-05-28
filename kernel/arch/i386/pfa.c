@@ -4,11 +4,11 @@
 
 #define CHECK_FLAG(flags, bit) ((flags) & (1 << (bit)))
 
-extern uint32_t startkernel;
-extern uint32_t endkernel;
+extern uint32_t _kernel_start;
+extern uint32_t _kernel_end;
 
 static uint32_t npages = 0;
-static uint32_t *frame_stack = &endkernel;
+static uint32_t *frame_stack = &_kernel_end;
 
 void pfa_initialize(uint32_t magic, uint32_t addr) {
   multiboot_info_t *mbi;
@@ -61,13 +61,12 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
   // Extend the kernel size by the amount of memory required 
   // to store the page frame data. Ideally no need to track 
   // the pages used for storing the page frame data
-  uint32_t kernel_start = (uint32_t)&startkernel;
-  uint32_t kernel_end = (uint32_t)&endkernel + npages * 4;
+  uint32_t kernel_start = (uint32_t)&_kernel_start;
+  uint32_t kernel_end = (uint32_t)&_kernel_end + npages * 4;
   if(kernel_end & 0xFFF) {
       kernel_end = kernel_end + (PAGE_SIZE - (kernel_end & 0xFFF));
   }
 
-  // printf("kernel_start: %x, kernel_end: %x\n", kernel_start, kernel_end);
 
   // map memory to pages
   mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
