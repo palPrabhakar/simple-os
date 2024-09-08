@@ -31,7 +31,7 @@ isr_common_stub:
 
 irq_common_stub:
 	pusha
-	
+
 	mov %ds, %ax
 	pushl %eax
 

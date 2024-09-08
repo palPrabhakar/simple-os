@@ -1,13 +1,16 @@
+#include <kernel/dt.h>
 #include <kernel/paging.h>
 #include <kernel/pfa.h>
+#include <kernel/timer.h>
 #include <kernel/tty.h>
-#include <kernel/dt.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/io.h>
 
 void kernel_init(uint32_t magic, uint32_t addr) {
   terminal_initialize();
   init_descriptor_tables();
+  // init_timer(50);
   pfa_initialize(magic, addr);
 }
 
@@ -35,8 +38,15 @@ void kernel_main(void) {
   // kfree_frame(frame1);
 
   // printf("interrupting...\n");
-  // asm volatile("int $0x01");
+  // asm volatile("int $0x21");
+  // asm volatile("int $0x21");
+  // asm volatile("int $0x22");
   // asm volatile("int $0x02");
   // asm volatile("int $0x03");
   // printf("interrupt done\n");
+
+  // This is not required
+  // for (;;) {
+  //   asm("hlt");
+  // }
 }

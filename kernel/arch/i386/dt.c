@@ -2,10 +2,11 @@
 // descriptor tables - Initialize GDT and IDT
 //
 
-#include <kernel/dt.h>
 #include <kernel/defs.h>
-#include <sys/io.h>
+#include <kernel/dt.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/io.h>
 
 // access assembly function from c code
 extern void load_gdt(uint32_t);
@@ -27,8 +28,8 @@ idt_ptr_t idt_ptr;
 
 void init_descriptor_tables(void) {
   init_gdt();
-  init_idt();
   remap_pic();
+  init_idt();
 }
 
 static void init_gdt() {
@@ -37,7 +38,7 @@ static void init_gdt() {
 
   gdt_set_descriptor(0, 0, 0, 0, 0);                // null desc
   gdt_set_descriptor(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // kernel code segment
-  gdt_set_descriptor(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // kernel data segement
+  gdt_set_descriptor(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // kernel data segment
   gdt_set_descriptor(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // user mode code segment
   gdt_set_descriptor(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // user mode data segment
 
@@ -58,6 +59,7 @@ static void gdt_set_descriptor(uint32_t num, uint32_t base, uint32_t limit,
 }
 
 static void init_idt() {
+  printf("init_idt\n");
   idt_ptr.limit = sizeof(idt_entry_t) * 256 - 1;
   idt_ptr.base = (uint32_t)&idt_entries;
 
@@ -96,41 +98,6 @@ static void init_idt() {
   idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8E);
   idt_set_gate(31, (uint32_t)isr31, 0x08, 0x8E);
 
-  load_idt((uint32_t)&idt_ptr);
-}
-
-static void remap_pic() {
-
-  uint8_t a1, a2;
-
-  a1 = inb(PIC1_DATA);
-  a2 = inb(PIC2_DATA);
-
-  outb(PIC1_COMMAND,
-       0x11); // starts the initialization sequence (in cascade mode)
-  io_wait();
-  outb(PIC2_COMMAND, 0x11);
-  io_wait();
-  outb(PIC1_DATA, PIC1_START_INTERRUPT); // ICW2: Master PIC vector offset
-  io_wait();
-  outb(PIC2_DATA, PIC2_START_INTERRUPT); // ICW2: Slave PIC vector offset
-  io_wait();
-  outb(
-      PIC1_DATA,
-      4); // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-  io_wait();
-  outb(PIC2_DATA, 2); // ICW3: tell Slave PIC its cascade identity (0000 0010)
-  io_wait();
-
-  outb(PIC1_DATA,
-       0x01); // ICW4: have the PICs use 8086 mode (and not 8080 mode)
-  io_wait();
-  outb(PIC2_DATA, 0x01);
-  io_wait();
-
-  outb(PIC1_DATA, a1); // restore saved masks.
-  outb(PIC2_DATA, a2);
-
   idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E);
   idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E);
   idt_set_gate(34, (uint32_t)irq2, 0x08, 0x8E);
@@ -147,6 +114,46 @@ static void remap_pic() {
   idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
   idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
   idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+
+  load_idt((uint32_t)&idt_ptr);
+}
+
+// static void IRQ_clear_mask(uint8_t IRQline) {
+//     uint16_t port;
+//     uint8_t value;
+//
+//     if(IRQline < 8) {
+//         port = PIC1_DATA;
+//     } else {
+//         port = PIC2_DATA;
+//         IRQline -= 8;
+//     }
+//     value = inb(port) & ~(1 << IRQline);
+//     outb(port, value);        
+// }
+
+static void remap_pic() {
+  printf("remap_pic\n");
+
+  outb(0x20, 0x11); // starts the initialization sequence (in cascade mode)
+  io_wait();
+  outb(0xA0, 0x11);
+  io_wait();
+  outb(0x21, PIC1_START_INTERRUPT); // ICW2: Master PIC vector offset
+  io_wait();
+  outb(0xA1, PIC2_START_INTERRUPT); // ICW2: Slave PIC vector offset
+  io_wait();
+  outb(0x21, 0x04); // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+  io_wait();
+  outb(0xA1, 0x02); // ICW3: tell Slave PIC its cascade identity (0000 0010)
+  io_wait();
+  outb(0x21, 0x01); // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+  io_wait();
+  outb(0xA1, 0x01);
+  io_wait();
+
+  outb(0x21, 0x0);
+  outb(0xA1, 0x0);
 }
 
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel,
