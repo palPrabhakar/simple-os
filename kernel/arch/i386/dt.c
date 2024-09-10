@@ -28,8 +28,8 @@ idt_ptr_t idt_ptr;
 
 void init_descriptor_tables(void) {
   init_gdt();
-  remap_pic();
   init_idt();
+  remap_pic();
 }
 
 static void init_gdt() {
@@ -59,7 +59,6 @@ static void gdt_set_descriptor(uint32_t num, uint32_t base, uint32_t limit,
 }
 
 static void init_idt() {
-  printf("init_idt\n");
   idt_ptr.limit = sizeof(idt_entry_t) * 256 - 1;
   idt_ptr.base = (uint32_t)&idt_entries;
 
@@ -118,42 +117,32 @@ static void init_idt() {
   load_idt((uint32_t)&idt_ptr);
 }
 
-// static void IRQ_clear_mask(uint8_t IRQline) {
-//     uint16_t port;
-//     uint8_t value;
-//
-//     if(IRQline < 8) {
-//         port = PIC1_DATA;
-//     } else {
-//         port = PIC2_DATA;
-//         IRQline -= 8;
-//     }
-//     value = inb(port) & ~(1 << IRQline);
-//     outb(port, value);        
-// }
-
 static void remap_pic() {
-  printf("remap_pic\n");
-
-  outb(0x20, 0x11); // starts the initialization sequence (in cascade mode)
+  outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4); // starts the initialization sequence (in cascade mode)
   io_wait();
-  outb(0xA0, 0x11);
+  outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
   io_wait();
-  outb(0x21, PIC1_START_INTERRUPT); // ICW2: Master PIC vector offset
+  outb(PIC1_DATA, PIC1_START_INTERRUPT); 
   io_wait();
-  outb(0xA1, PIC2_START_INTERRUPT); // ICW2: Slave PIC vector offset
+  outb(PIC2_DATA, PIC2_START_INTERRUPT); 
   io_wait();
-  outb(0x21, 0x04); // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+  outb(PIC1_DATA, 0x04); 
   io_wait();
-  outb(0xA1, 0x02); // ICW3: tell Slave PIC its cascade identity (0000 0010)
+  outb(PIC2_DATA, 0x02); 
   io_wait();
-  outb(0x21, 0x01); // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+  outb(PIC1_DATA, ICW4_8086); 
   io_wait();
-  outb(0xA1, 0x01);
+  outb(PIC2_DATA, ICW4_8086);
   io_wait();
 
-  outb(0x21, 0x0);
-  outb(0xA1, 0x0);
+  // mask all interrupts
+  outb(PIC1_DATA, DISABLE_ALL_PIC);
+  io_wait();
+  outb(PIC2_DATA, DISABLE_ALL_PIC);
+  io_wait();
+
+  // enable interrupts
+  asm("sti");
 }
 
 static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel,

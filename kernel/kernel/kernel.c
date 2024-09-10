@@ -10,7 +10,7 @@
 void kernel_init(uint32_t magic, uint32_t addr) {
   terminal_initialize();
   init_descriptor_tables();
-  // init_timer(50);
+  init_timer(50);
   pfa_initialize(magic, addr);
 }
 
@@ -38,15 +38,18 @@ void kernel_main(void) {
   // kfree_frame(frame1);
 
   // printf("interrupting...\n");
-  // asm volatile("int $0x21");
-  // asm volatile("int $0x21");
-  // asm volatile("int $0x22");
+  // asm volatile("int $0x01");
   // asm volatile("int $0x02");
   // asm volatile("int $0x03");
+  // asm volatile("int $0x21");
+  // asm volatile("int $0x22");
   // printf("interrupt done\n");
+  
+  // enable the keyboard interrupt
+  outb(0x21, 0xFD);
+  // outb(0xA1, 0xFF);
 
-  // This is not required
-  // for (;;) {
-  //   asm("hlt");
-  // }
+  for(;;) {
+    asm("hlt");
+  }
 }

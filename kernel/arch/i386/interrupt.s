@@ -4,7 +4,7 @@
 
 .section .text
 isr_common_stub:
-	pusha
+	pushal
 
 	mov %ds, %ax
 	pushl %eax
@@ -24,13 +24,13 @@ isr_common_stub:
 	mov %ax, %fs
 	mov %ax, %gs
 
-	popa
+	popal
 	add $8, %esp
 	sti
 	iret
 
 irq_common_stub:
-	pusha
+	pushal
 
 	mov %ds, %ax
 	pushl %eax
@@ -50,7 +50,7 @@ irq_common_stub:
 	mov %ax, %fs
 	mov %ax, %gs
 
-	popa
+	popal
 	add $8, %esp
 	sti
 	iret
