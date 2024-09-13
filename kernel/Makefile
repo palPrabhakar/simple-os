@@ -28,6 +28,7 @@ LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
 LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
 KERNEL_OBJS=\
+devices/keyboard.o \
 $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
 kernel/paging.o \

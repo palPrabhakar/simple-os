@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sys/io.h>
 #include <kernel/timer.h>
+#include <devices/keyboard.h>
 
 void isr_handler(registers_t regs) {
   printf("interrupt received.\n");
@@ -25,6 +26,6 @@ void irq_handler(registers_t regs) {
     printf("timer interrupt\n"); 
   } else if (regs.int_no == 33) {
     unsigned char scan_code = inb(0x60);
-    printf("key scan_code: %u\n", scan_code);
+    keyboard_irq(scan_code);
   }
 }
