@@ -1,6 +1,7 @@
 #include <kernel/pfa.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "multiboot.h"
 
 #define CHECK_FLAG(flags, bit) ((flags) & (1 << (bit)))
 
@@ -35,7 +36,8 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
   for (; (unsigned long)mmap < mbi->mmap_addr + mbi->mmap_length;
        mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size +
                                          sizeof(mmap->size))) {
-    // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type = %u\n",
+    // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type =
+    // %u\n",
     //        (uint32_t)mmap->size, (uint32_t)mmap->addr_low,
     //        (uint32_t)mmap->addr_low + mmap->len_low, (uint32_t)mmap->len_low,
     //        (uint32_t)mmap->type);
@@ -58,15 +60,14 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     }
   }
 
-  // Extend the kernel size by the amount of memory required 
-  // to store the page frame data. Ideally no need to track 
+  // Extend the kernel size by the amount of memory required
+  // to store the page frame data. Ideally no need to track
   // the pages used for storing the page frame data
   uint32_t kernel_start = (uint32_t)&_kernel_start;
   uint32_t kernel_end = (uint32_t)&_kernel_end + npages * 4;
-  if(kernel_end & 0xFFF) {
-      kernel_end = kernel_end + (PAGE_SIZE - (kernel_end & 0xFFF));
+  if (kernel_end & 0xFFF) {
+    kernel_end = kernel_end + (PAGE_SIZE - (kernel_end & 0xFFF));
   }
-
 
   // map memory to pages
   mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
@@ -89,10 +90,14 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
       }
     }
   }
+
+
+  // the kernel is loaded at 0xC0000000
+  frame_stack += 0xC0000000 / sizeof(uint32_t);
 }
 
 pageframe_t kalloc_frame() {
-  if(npages == 0) {
+  if (npages == 0) {
     printf("Kernel: Out of physical memory.\n");
     abort();
   }

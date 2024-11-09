@@ -39,7 +39,7 @@ _start:
 
 1:
 	# Map everything including the first 1M
-	cmpl $(_kernel_end - 0xC0000000), %esi
+	cmpl $_kernel_end, %esi
 	jge 3f
 
 	# Map physical address as "present, writable"
