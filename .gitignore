@@ -2,5 +2,5 @@
 isodir
 sysroot
 compile_commands.json
-.cache
+.cache/
 

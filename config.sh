@@ -14,7 +14,7 @@ export BOOTDIR=/boot
 export LIBDIR=$EXEC_PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
-export CFLAGS='-O0 -fno-optimize-sibling-calls'
+export CFLAGS='-O2 -fno-optimize-sibling-calls'
 export CPPFLAGS=''
 
 # Configure the cross-compiler to use the desired system root.
