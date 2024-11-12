@@ -52,7 +52,7 @@ LIBK_OBJS=$(FREEOBJS:.o=.libk.o)
 BINARIES=libk.a
 
 .PHONY: all clean install install-headers install-libs
-.SUFFIXES: .o .libk.o .c .S
+.SUFFIXES: .o .libk.o .c .s
 
 all: $(BINARIES)
 
@@ -65,7 +65,7 @@ libk.a: $(LIBK_OBJS)
 %.o: %.c
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
-%.o: %.S
+%.o: %.s
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 %.libk.o: %.c

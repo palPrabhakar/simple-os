@@ -65,7 +65,7 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 $(OBJDIR)/%.o: %.c
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
-$(OBJDIR)/%.o: %.S
+$(OBJDIR)/%.o: %.s
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
