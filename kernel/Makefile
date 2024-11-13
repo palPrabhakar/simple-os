@@ -31,7 +31,6 @@ KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
 devices/keyboard.o \
 kernel/kernel.o \
-kernel/paging.o \
 kernel/helper.o \
 
 OBJS=\
