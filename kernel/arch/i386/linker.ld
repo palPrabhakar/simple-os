@@ -13,12 +13,9 @@ SECTIONS
 	_kernel_start = .;
 	
 	/* multiboot header */
-	.multiboot.data : {
-		*(.multiboot.data)
-	}
-
-	.multiboot.text : {
-		*(.multiboot.text)
+	.entry ALIGN(4k) : AT(ADDR(.entry)) {
+		*(.multiboot)
+		*(.entry)
 	}
 
 	. += 0xC0000000;

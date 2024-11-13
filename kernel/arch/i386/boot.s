@@ -6,7 +6,7 @@
 .set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
 # Declare a header as in the Multiboot Standard.
-.section .multiboot.data, "aw"
+.section .multiboot, "aw"
 .align 4
 .long MAGIC
 .long FLAGS
@@ -27,7 +27,7 @@ boot_page_table:
 .skip 4096
 
 # The kernel entry point.
-.section .multiboot.text, "a"
+.section .entry, "ax"
 .global _start
 .type _start, @function
 _start:
