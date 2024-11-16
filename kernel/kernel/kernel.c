@@ -17,13 +17,11 @@ void kernel_init(uint32_t magic, uint32_t addr) {
   init_timer(50);
 
   // map the pfa region
-
-  uint32_t *dir = (uint32_t *)0xC010A000;
-  dir += 768;
-  uint32_t *tbl = (uint32_t *)(((uint32_t)*dir & 0xFFFFF000) + 0xC0000000);
-
-  for (int i = 269; i < 301; ++i) {
-    *(tbl + i) = 0x10D003 + (i - 269) * 4096;
+  uint32_t *dir = &boot_page_directory;
+  dir += 1023;
+  uint32_t *tbl = (uint32_t *)(*(uint32_t *)((*dir & 0xFFFFF000) + 768*4) & 0xFFFFF000);
+  for(int i = 269; i < 301; ++i) {
+      tbl[i] = 0x10D003 + (i - 269)*4096;
   }
 
   unsigned int cr3_value;

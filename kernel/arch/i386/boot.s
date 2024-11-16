@@ -59,6 +59,9 @@ _start:
     movl $(boot_page_table - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
     # Map the page table to the higher half
     movl $(boot_page_table - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768*4
+    # Identity map the page_directory to itself
+    # http://www.osdever.net/tutorials/view/memory-management-1 (see section: Memory mapping)
+    movl $(boot_page_directory - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 1023*4
 
     # Set cr3 to the address of boot_page_directory
     movl $(boot_page_directory - 0xC0000000), %ecx
@@ -79,9 +82,9 @@ _start:
     # stack is located after 0xC0000000
     movl $stack_top, %esp
 
-    /* Push the pointer to the Multiboot information structure. */
+    # Push the pointer to the Multiboot information structure.
     pushl %ebx
-    /* Push the magic value. */
+    # Push the magic value.
     pushl %eax
 
     # Setup PFA using identity mapping (IM)
