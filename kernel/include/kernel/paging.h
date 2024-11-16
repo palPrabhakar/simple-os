@@ -24,7 +24,8 @@ typedef struct page_directory {
   uint32_t tables[SIZE];
 } page_directory_t;
 
-void initialize_paging(void);
+// void initialize_paging(void);
+
 page_directory_t *get_page_directory(uint32_t);
 page_table_t *get_page_table(uint32_t);
 void switch_page_directory(page_directory_t *);

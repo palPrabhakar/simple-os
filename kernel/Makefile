@@ -29,8 +29,8 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
 KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
+devices/keyboard.o \
 kernel/kernel.o \
-kernel/paging.o \
 kernel/helper.o \
 
 OBJS=\
@@ -61,10 +61,10 @@ myos.kernel: $(OBJS) $(ARCHDIR)/linker.ld
 $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
-.c.o:
+$(OBJDIR)/%.o: %.c
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
-.S.o:
+$(OBJDIR)/%.o: %.s
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
