@@ -1,8 +1,7 @@
 // not required; all undefined symbols are treated external
-.extern isr_handler 
+.extern isr_handler
 .extern irq_handler
 
-.section .text
 isr_common_stub:
 	pushal
 
@@ -85,6 +84,28 @@ irq\n1:
 .endm
 
 .section .text
+.global load_gdt
+.type load_gdt, @function
+load_gdt:
+    mov 4(%esp), %eax
+    lgdt (%eax)
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
+    ljmp $0x08, $flush
+flush:
+    ret
+
+.global load_idt
+.type load_idt, @function
+load_idt:
+    mov 4(%esp), %eax
+    lidt (%eax)
+    ret
+
 no_error_code_interrupt_handler 0
 no_error_code_interrupt_handler 1
 no_error_code_interrupt_handler 2

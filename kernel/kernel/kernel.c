@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <sys/io.h>
 
-// extern void *boot_page_directory;
+// https://stackoverflow.com/questions/8045108/use-label-in-assembly-from-c
+extern void boot_page_directory asm("boot_page_directory");
+extern void boot_page_table asm("boot_page_table");
 
 void kernel_init(uint32_t magic, uint32_t addr) {
   terminal_initialize();
@@ -47,6 +49,9 @@ void kernel_init(uint32_t magic, uint32_t addr) {
 void kernel_main(void) {
   printf("\nHello, Kernel World.\n");
   printf("%s", "Simple OS.\n");
+
+  printf("\nboot_page_directory: %x\n", &boot_page_directory);
+  printf("\nboot_page_table: %x\n", &boot_page_table);
 
   // Do page fault
   // uint32_t *ptr = (uint32_t *)0xA0000000;
