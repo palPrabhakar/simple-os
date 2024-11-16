@@ -12,8 +12,11 @@ SECTIONS
 
 	_kernel_start = .;
 
-	/* multiboot header */
-    /* initial bootstrapping code for paging */
+	/* multiboot header
+     * initial bootstrapping code for paging
+     * Thoughts: Perhaps the more elegant solution would
+     * be to link the entire code at 3GB and use segment registers
+     * to get the right address before enabling paging */
 	.entry ALIGN(4k) : AT(ADDR(.entry)) {
         _entry_sec = .;
 		*(.multiboot)

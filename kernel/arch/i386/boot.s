@@ -43,8 +43,8 @@ _start:
     jge 3f
 
     # Map physical address as "present, writable"
-    # TODO:
-    # Map .text and .rodata an readonly
+    # TODO: Map .text and .rodata an readonly
+    # Easy Solution: Fix the flags later in higher half!!
     movl %esi, %edx
     orl $0x003, %edx
     movl %edx, (%edi)
