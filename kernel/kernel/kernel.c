@@ -11,6 +11,14 @@
 extern void boot_page_directory asm("boot_page_directory");
 extern void boot_page_table asm("boot_page_table");
 
+extern char _kernel_start;
+extern char _entry_sec;
+extern char _text_sec;
+extern char _rodata_sec;
+extern char _data_sec;
+extern char _bss_sec;
+extern char _kernel_end;
+
 void kernel_init(uint32_t magic, uint32_t addr) {
   terminal_initialize();
   init_descriptor_tables();
@@ -50,6 +58,17 @@ void kernel_main(void) {
 
   printf("\nboot_page_directory: %x\n", &boot_page_directory);
   printf("\nboot_page_table: %x\n", &boot_page_table);
+
+  printf("\n======================\n");
+  printf("_kernel_start: %x\n", &_kernel_start);
+  printf("_entry_sec: %x\n", &_entry_sec);
+  printf("_text_sec: %x\n", &_text_sec);
+  printf("_rodata_sec: %x\n", &_rodata_sec);
+  printf("_data_sec: %x\n", &_data_sec);
+  printf("_bss_sec: %x\n", &_bss_sec);
+  printf("_kernel_end: %x\n", &_kernel_end);
+  printf("======================\n");
+
 
   // Do page fault
   // uint32_t *ptr = (uint32_t *)0xA0000000;
