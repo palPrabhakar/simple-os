@@ -11,7 +11,7 @@
 #define ERROR UINT32_MAX
 #define PRE 20
 
-#define ROUND_4K(x) ((x) & 0xFFF ? ((x) + (PAGE_SIZE - ((x) & 0xFFF))): (x))
+#define ROUND_4K(x) ((x) & 0xFFF ? ((x) + (PAGE_SIZE - ((x) & 0xFFF))) : (x))
 
 typedef uint32_t pageframe_t;
 
