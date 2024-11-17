@@ -4,16 +4,9 @@
 
 // https://stackoverflow.com/questions/8045108/use-label-in-assembly-from-c
 extern void boot_page_directory asm("boot_page_directory");
-extern void boot_page_table asm("boot_page_table");
 
 extern char _kernel_start;
-extern char _kernel_start;
-extern char _entry_sec;
-extern char _text_sec;
-extern char _rodata_sec;
 extern char _data_sec;
-extern char _bss_sec;
-extern char _kernel_end;
 
 __attribute__((__always_inline__)) static inline page_dir_t *
 get_page_directory(uint32_t addr) {
@@ -23,6 +16,16 @@ get_page_directory(uint32_t addr) {
 __attribute__((__always_inline__)) static inline page_table_t *
 get_page_table(uint32_t addr) {
     return (page_table_t *)(addr << 12);
+}
+
+__attribute__((__always_inline__)) static inline void
+switch_page_directory(void *dir) {
+    asm volatile("mov %0, %%cr3" ::"r"((uint32_t)dir));
+}
+
+__attribute__((__always_inline__)) static inline void
+invalidate_page_table(void *tbl) {
+    asm volatile("invlpg (%0)" ::"r"((uint32_t)tbl) : "memory");
 }
 
 void fix_kpaging_flags(void) {
@@ -55,29 +58,13 @@ void fix_kpaging_flags(void) {
         tbl->pages[i].present = 1;
     }
 
-    unsigned int cr3_value;
-
-    // Inline assembly to move the content of CR3 into a C variable
-    asm volatile("movl %%cr3, %0"
-                 : "=r"(cr3_value) // Output operand
-                 :                 // No input operands
-                 :                 // No clobbers needed for CR3
-    );
-
-    // Inline assembly to move the content of ECX into CR3
-    asm volatile(
-        "mov %0, %%cr3"
-        :                // No output operands
-        : "r"(cr3_value) // Input operand: register or memory holding the value
-        : "memory" // Clobber memory to inform the compiler of dependencies
-    );
+    invalidate_page_table(tbl);
 }
 
-// void switch_page_directory(page_directory_t *dir) {
-//   current_directory = dir;
-//   asm volatile("mov %0, %%cr3" ::"r"(&dir->tables));
-//   uint32_t cr0;
-//   asm volatile("mov %%cr0, %0" : "=r"(cr0));
-//   cr0 |= 0x80000000; // Enable paging!
-//   asm volatile("mov %0, %%cr0" ::"r"(cr0));
-// }
+void reload_cr3(void) {
+    unsigned int cr3_value;
+    // Move the content of CR3 into cr3_value
+    asm volatile("movl %%cr3, %0" : "=r"(cr3_value) : :);
+    // Move the content of cr3_value into CR3
+    asm volatile("mov %0, %%cr3" : : "r"(cr3_value) : "memory");
+}

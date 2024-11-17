@@ -36,11 +36,8 @@ typedef struct page_directory {
     dir_entry_t tables[SIZE];
 } page_dir_t;
 
-// void initialize_paging(void);
 
-// page_dir_t *get_page_directory(uint32_t);
-// page_table_t *get_page_table(uint32_t);
 void fix_kpaging_flags(void);
-// void switch_page_directory(page_directory_t *);
+void reload_cr3(void);
 
 #endif
