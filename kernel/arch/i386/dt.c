@@ -1,12 +1,12 @@
 //
 // descriptor tables - Initialize GDT and IDT
 //
-
-#include <kernel/defs.h>
-#include <kernel/dt.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/io.h>
+
+#include <kernel/defs.h>
+#include <kernel/dt.h>
 
 // access assembly function from c code
 extern void load_gdt(uint32_t);

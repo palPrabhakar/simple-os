@@ -1,11 +1,12 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/io.h>
+
 #include <kernel/dt.h>
 #include <kernel/paging.h>
 #include <kernel/pfa.h>
 #include <kernel/timer.h>
 #include <kernel/tty.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <sys/io.h>
 
 void kernel_init(uint32_t magic, uint32_t addr) {
     terminal_initialize();

@@ -1,7 +1,8 @@
-#include <kernel/timer.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/io.h>
+
+#include <kernel/timer.h>
 
 uint32_t tick = 0;
 
@@ -11,7 +12,6 @@ uint32_t tick = 0;
 // }
 
 void init_timer(uint32_t frequency) {
-    printf("init_timer: %u\n", frequency);
     // The value we send to the PIT is the value to divide it's input clock
     // (1193180 Hz) by, to get our required frequency. Important to note is
     // that the divisor must be small enough to fit into 16-bits.

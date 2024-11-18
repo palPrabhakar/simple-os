@@ -1,7 +1,10 @@
 #include "multiboot.h"
-#include <kernel/pfa.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <kernel/paging.h>
+#include <kernel/pfa.h>
 
 #define CHECK_FLAG(flags, bit) ((flags) & (1 << (bit)))
 
@@ -60,14 +63,21 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
         }
     }
 
-    // Extend the kernel size by the amount of memory required
-    // to store the page frame data. Ideally no need to track
-    // the pages used for storing the page frame data
     uint32_t kernel_start = (uint32_t)&_kernel_start;
-    uint32_t kernel_end = (uint32_t)&_kernel_end + npages * 4;
-    if (kernel_end & 0xFFF) {
-        kernel_end = kernel_end + (PAGE_SIZE - (kernel_end & 0xFFF));
+    uint32_t kernel_end = ROUND_4K((uint32_t)&_kernel_end);
+
+    // map the pages/frame that will be used to store the page frame data. The
+    // npages calculated above is an approx. since we don't need to map the
+    // frames that will be used to store the page frame data. However, no extra
+    // page/frame is wasted since the bytes required to map the page frame data
+    // is less than 4K boundary.
+    for (uint32_t start = kernel_end;
+         start < kernel_end + npages * sizeof(uint32_t); start += PAGE_SIZE) {
+        map_paddr_to_vaddr(start, start + 0xC0000000, 0, 1);
     }
+
+    // extend the size of the kernel to include the page frame allocator data
+    kernel_end += npages * sizeof(uint32_t);
 
     // map memory to pages
     mmap = (multiboot_memory_map_t *)mbi->mmap_addr;

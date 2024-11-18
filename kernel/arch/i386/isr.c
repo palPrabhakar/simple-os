@@ -1,9 +1,11 @@
-#include <devices/keyboard.h>
+#include <stdio.h>
+#include <sys/io.h>
+
 #include <kernel/defs.h>
 #include <kernel/isr.h>
 #include <kernel/timer.h>
-#include <stdio.h>
-#include <sys/io.h>
+
+#include <devices/keyboard.h>
 
 void isr_handler(registers_t regs) {
     printf("interrupt received.\n");

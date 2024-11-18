@@ -3,8 +3,9 @@
 // TODO: move to utils directory
 //
 
-#include "helper.h"
 #include <stdio.h>
+
+#include "helper.h"
 
 void print_uint32_val(uint32_t val) { printf("\ndebug val: %u\n\n", val); }
 
