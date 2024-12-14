@@ -34,13 +34,12 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     // 2. merge adjacent regions of same type
     // printf("mmap_addr = %x, mmap_length = %x\n", (unsigned)mbi->mmap_addr,
     //        (unsigned)mbi->mmap_length);
-
     multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
     for (; (unsigned long)mmap < mbi->mmap_addr + mbi->mmap_length;
          mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size +
                                            sizeof(mmap->size))) {
-        // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type =
-        // %u\n",
+        // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type = "
+        //        "%u\n",
         //        (uint32_t)mmap->size, (uint32_t)mmap->addr_low,
         //        (uint32_t)mmap->addr_low + mmap->len_low,
         //        (uint32_t)mmap->len_low, (uint32_t)mmap->type);
@@ -92,6 +91,11 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
                  start < mmap->addr_low + mmap->len_low; start += PAGE_SIZE) {
                 // since kernel start/end if 4KB aligned
                 if (start >= (uint32_t)kernel_start && start < kernel_end)
+                    continue;
+
+                // Skip if VGA buffer
+                // Not really needed!
+                if((start <= 0x000B8000) && ((start + PAGE_SIZE) >= 0x000B8000))
                     continue;
 
                 *frame_stack = start;

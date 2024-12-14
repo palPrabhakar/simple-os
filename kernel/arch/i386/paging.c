@@ -5,7 +5,8 @@
 #include <kernel/paging.h>
 
 // https://stackoverflow.com/questions/8045108/use-label-in-assembly-from-c
-// Defining the symbol as a void function prevents compiler when taking address
+// Defining the symbol as a void function prevents compiler warnings when
+// taking address
 extern void boot_page_directory(void) asm("boot_page_directory");
 
 extern char _kernel_start;
