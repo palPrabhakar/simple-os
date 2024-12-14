@@ -13,6 +13,8 @@ EXEC_PREFIX?=$(PREFIX)
 BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
+BUILD_DIR?=build
+
 CFLAGS:=$(CFLAGS) -ffreestanding -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude
 LDFLAGS:=$(LDFLAGS)
@@ -28,49 +30,50 @@ LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
 LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
 KERNEL_OBJS=\
-$(KERNEL_ARCH_OBJS) \
-devices/keyboard.o \
-kernel/kernel.o \
-kernel/helper.o \
+			$(KERNEL_ARCH_OBJS) \
+			$(BUILD_DIR)/devices/keyboard.o \
+			$(BUILD_DIR)/kernel/kernel.o \
+			$(BUILD_DIR)/kernel/helper.o \
 
 OBJS=\
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
-$(KERNEL_OBJS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
+	 $(BUILD_DIR)/$(ARCHDIR)/crti.o \
+	 $(BUILD_DIR)/$(ARCHDIR)/crtbegin.o \
+	 $(KERNEL_OBJS) \
+	 $(BUILD_DIR)/$(ARCHDIR)/crtend.o \
+	 $(BUILD_DIR)/$(ARCHDIR)/crtn.o
 
 LINK_LIST=\
-$(LDFLAGS) \
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
-$(KERNEL_OBJS) \
-$(LIBS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
+		  $(LDFLAGS) \
+		  $(BUILD_DIR)/$(ARCHDIR)/crti.o \
+		  $(BUILD_DIR)/$(ARCHDIR)/crtbegin.o \
+		  $(KERNEL_OBJS) \
+		  $(LIBS) \
+		  $(BUILD_DIR)/$(ARCHDIR)/crtend.o \
+		  $(BUILD_DIR)/$(ARCHDIR)/crtn.o \
 
 .PHONY: all clean install install-headers install-kernel
 .SUFFIXES: .o .c .s
 
-all: myos.kernel
+all: $(BUILD_DIR)/myos.kernel
 
-myos.kernel: $(OBJS) $(ARCHDIR)/linker.ld
+$(BUILD_DIR)/myos.kernel: $(OBJS) $(ARCHDIR)/linker.ld
+	@mkdir -p $(BUILD_DIR)
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
-	grub2-file --is-x86-multiboot myos.kernel
+	grub2-file --is-x86-multiboot $(BUILD_DIR)/myos.kernel
 
-$(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
+$(BUILD_DIR)/$(ARCHDIR)/crtbegin.o $(BUILD_DIR)/$(ARCHDIR)/crtend.o:
 	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
-$(OBJDIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
 
-$(OBJDIR)/%.o: %.s
+$(BUILD_DIR)/%.o: %.s
+	@mkdir -p $(dir $@)
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
-	rm -f myos.kernel
-	rm -f $(OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -rf $(BUILD_DIR)
 
 install: install-headers install-kernel
 
@@ -78,9 +81,8 @@ install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDEDIR)/.
 
-install-kernel: myos.kernel
+install-kernel: $(BUILD_DIR)/myos.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
-	cp myos.kernel $(DESTDIR)$(BOOTDIR)
+	cp $(BUILD_DIR)/myos.kernel $(DESTDIR)$(BOOTDIR)
 
 -include $(OBJS:.o=.d)
-
