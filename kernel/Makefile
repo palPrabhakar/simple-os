@@ -33,7 +33,7 @@ KERNEL_OBJS=\
 			$(KERNEL_ARCH_OBJS) \
 			$(BUILD_DIR)/devices/keyboard.o \
 			$(BUILD_DIR)/kernel/kernel.o \
-			$(BUILD_DIR)/kernel/helper.o \
+			$(BUILD_DIR)/utils/helper.o \
 
 OBJS=\
 	 $(BUILD_DIR)/$(ARCHDIR)/crti.o \
