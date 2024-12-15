@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <kernel/defs.h>
 #include <kernel/paging.h>
 #include <kernel/pfa.h>
 
@@ -12,9 +13,12 @@ extern uint32_t _kernel_start;
 extern uint32_t _kernel_end;
 
 static uint32_t npages = 0;
-static uint32_t *frame_stack = &_kernel_end;
+static uint32_t *frame_stack;
 
-void pfa_initialize(uint32_t magic, uint32_t addr) {
+uint32_t pfa_initialize(uint32_t magic, uint32_t addr) {
+    printf("Initializing page frame allocator: %u\n", addr);
+    printf("Size of multiboot_info_t: %u\n", addr + sizeof(multiboot_info_t));
+
     multiboot_info_t *mbi;
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -23,6 +27,12 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     }
 
     mbi = (multiboot_info_t *)addr;
+
+    printf("Addr of multiboot_mods: %u\n", (uint32_t)mbi->mods_addr);
+    printf("Length of multiboot_mods: %u\n", mbi->mods_count);
+
+    printf("Addr of multiboot_drives: %u\n", (uint32_t)mbi->drives_addr);
+    printf("Length of multiboot_drives: %u\n", mbi->drives_length);
 
     if (!CHECK_FLAG(mbi->flags, 6)) {
         printf("Invalid memory map found.\n");
@@ -35,14 +45,17 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     // printf("mmap_addr = %x, mmap_length = %x\n", (unsigned)mbi->mmap_addr,
     //        (unsigned)mbi->mmap_length);
     multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
+    printf("Addr of multiboot_memory_map: %u\n", (uint32_t)mmap);
+    printf("Length of multiboot_memory_map: %u\n\n", mbi->mmap_length);
+
     for (; (unsigned long)mmap < mbi->mmap_addr + mbi->mmap_length;
          mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size +
                                            sizeof(mmap->size))) {
-        // printf("size = %u, addr_low = %u, addr_end = %u, len_low = %u, type = "
-        //        "%u\n",
-        //        (uint32_t)mmap->size, (uint32_t)mmap->addr_low,
-        //        (uint32_t)mmap->addr_low + mmap->len_low,
-        //        (uint32_t)mmap->len_low, (uint32_t)mmap->type);
+        printf("addr_start = %x, addr_end = %x, size = %uKB, type = "
+               "%u\n",
+               (uint32_t)mmap->addr_low,
+               (uint32_t)mmap->addr_low + mmap->len_low,
+               (uint32_t)mmap->len_low / 1024, (uint32_t)mmap->type);
 
         if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
             // check if addr_low is 4KB aligned
@@ -61,9 +74,13 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
             npages += mmap->len_low / PAGE_SIZE;
         }
     }
+    // printf("\n");
 
     uint32_t kernel_start = (uint32_t)&_kernel_start;
     uint32_t kernel_end = ROUND_4K((uint32_t)&_kernel_end);
+
+    // Store the pfa information
+    frame_stack = (uint32_t *)kernel_end;
 
     // map the pages/frame that will be used to store the page frame data. The
     // npages calculated above is an approx. since we don't need to map the
@@ -72,11 +89,13 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     // is less than 4K boundary.
     for (uint32_t start = kernel_end;
          start < kernel_end + npages * sizeof(uint32_t); start += PAGE_SIZE) {
-        map_paddr_to_vaddr(start, start + 0xC0000000, 0, 1);
+        map_paddr_to_vaddr(start, start + KERNEL_VSTART, 0, 1);
     }
 
     // extend the size of the kernel to include the page frame allocator data
     kernel_end += npages * sizeof(uint32_t);
+    printf("pfa kernel_end: %u\n", kernel_end);
+    printf("pfa kernel_end: %x\n\n", kernel_end);
 
     // map memory to pages
     mmap = (multiboot_memory_map_t *)mbi->mmap_addr;
@@ -94,8 +113,8 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
                     continue;
 
                 // Skip if VGA buffer
-                // Not really needed!
-                if((start <= 0x000B8000) && ((start + PAGE_SIZE) >= 0x000B8000))
+                // This check is not really needed!
+                if (start == VGA_BUFFER)
                     continue;
 
                 *frame_stack = start;
@@ -106,7 +125,11 @@ void pfa_initialize(uint32_t magic, uint32_t addr) {
     }
 
     // the kernel is loaded at 0xC0000000
-    frame_stack += 0xC0000000 / sizeof(uint32_t);
+    // need to divide 0xC0000000 by sizeof(uint32_t),
+    // since the frame_stack is uint32_t pointer i.e.,
+    // 4 bytes in size.
+    frame_stack += KERNEL_VSTART / sizeof(uint32_t);
+    return (uint32_t)frame_stack;
 }
 
 pageframe_t kalloc_frame() {

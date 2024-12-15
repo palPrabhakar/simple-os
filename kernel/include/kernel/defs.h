@@ -26,4 +26,7 @@
 #define DISABLE_ALL_PIC 0xFF
 #define ENABLE_ALL_PIC 0x00
 
+#define VGA_BUFFER 0x000B8000
+#define KERNEL_VSTART 0xC0000000
+
 #endif

@@ -32,6 +32,7 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 KERNEL_OBJS=\
 			$(KERNEL_ARCH_OBJS) \
 			$(BUILD_DIR)/devices/keyboard.o \
+			$(BUILD_DIR)/kernel/vmm.o \
 			$(BUILD_DIR)/kernel/kernel.o \
 			$(BUILD_DIR)/utils/helper.o \
 

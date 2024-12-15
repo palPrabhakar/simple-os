@@ -34,8 +34,9 @@ void fix_kpaging_flags(void) {
     page_dir_t *dir = GET_PHYSICAL_ADDR(active_page_dir);
     page_table_t *tbl = GET_PAGE_TABLE(dir, 768);
 
+    // TODO:
     // Do not unmap the first 1MB atleast at this point!
-    // The VGA Buffer and the multiboot structure lies
+    // The VGA Buffer and the multiboot structure might lie
     // in the first 1MB
     for (uint32_t i = (uint32_t)&_kernel_start; i < (uint32_t)&_data_sec;
          i += 4096) {

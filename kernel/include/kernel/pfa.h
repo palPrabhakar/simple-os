@@ -15,7 +15,7 @@
 
 typedef uint32_t pageframe_t;
 
-void pfa_initialize(uint32_t magic, uint32_t addr);
+uint32_t pfa_initialize(uint32_t magic, uint32_t addr);
 pageframe_t kalloc_frame();
 void kfree_frame(pageframe_t a);
 
