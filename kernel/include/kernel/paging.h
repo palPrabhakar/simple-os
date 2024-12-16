@@ -1,6 +1,7 @@
 #ifndef _KERNEL_PAGING_H
 #define _KERNEL_PAGING_H
 
+#include "multiboot.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -30,7 +31,9 @@ __attribute__((__always_inline__)) static inline void reload_cr3(void) {
     asm volatile("mov %0, %%cr3" : : "r"(cr3_value) : "memory");
 }
 
-void fix_kpaging_flags(void);
+// Get the address of multiboot info
+void fix_kpage_table(void);
+void set_active_directory(page_dir_t *dir);
 void map_paddr_to_vaddr(uint32_t paddr, uint32_t vaddr, bool user, bool rw);
 
 #endif

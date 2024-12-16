@@ -28,5 +28,7 @@
 
 #define VGA_BUFFER 0x000B8000
 #define KERNEL_VSTART 0xC0000000
+#define MB 0x100000
+#define PAGE_SIZE 4096
 
 #endif

@@ -1,4 +1,6 @@
+#include "kernel/defs.h"
 #include "kernel/vmm.h"
+#include "multiboot.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/io.h>
@@ -10,17 +12,20 @@
 #include <kernel/timer.h>
 #include <kernel/tty.h>
 
+extern void boot_page_directory(void) asm("boot_page_directory");
+
 void kernel_init(uint32_t magic, uint32_t addr) {
     terminal_initialize();
-    fix_kpaging_flags();
     init_descriptor_tables();
     init_timer(50);
-    uint32_t kend = pfa_initialize(magic, addr);
+    set_active_directory((page_dir_t *)&boot_page_directory);
+    uint32_t kend = pfa_initialize(magic, (multiboot_info_t *)(addr + KERNEL_VSTART));
     map_kernel_vm(kend);
+    fix_kpage_table();
 }
 
 void kernel_main(void) {
-    printf("\nHello, Kernel World.\n");
+    printf("Hello, Kernel World.\n");
     printf("%s", "Simple OS.\n");
 
     // Do page fault
@@ -29,9 +34,8 @@ void kernel_main(void) {
 
     // printf("\n");
     // pageframe_t frame0 = kalloc_frame();
-    // printf("frame_start: %x, frame_end: %x\n", frame0, frame0 + PAGE_SIZE);
-    // printf("\n");
     // pageframe_t frame1 = kalloc_frame();
+    // printf("frame_start: %x, frame_end: %x\n", frame0, frame0 + PAGE_SIZE);
     // printf("frame_start: %x, frame_end: %x\n", frame1, frame1 + PAGE_SIZE);
     // kfree_frame(frame0);
     // kfree_frame(frame1);

@@ -1,13 +1,15 @@
+#include "kernel/pfa.h"
+#include "multiboot.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <kernel/defs.h>
 #include <kernel/paging.h>
 
 // https://stackoverflow.com/questions/8045108/use-label-in-assembly-from-c
 // Defining the symbol as a void function prevents compiler warnings when
 // taking address
-extern void boot_page_directory(void) asm("boot_page_directory");
 
 extern char _kernel_start;
 extern char _data_sec;
@@ -28,18 +30,24 @@ static page_dir_t *active_page_dir;
 
 #define GET_PAGE_TABLE(dir, idx) (page_table_t *)(dir->tables[idx] & 0xFFFFF000)
 
-void fix_kpaging_flags(void) {
-    active_page_dir = (page_dir_t *)&boot_page_directory;
+void set_active_directory(page_dir_t *dir){
+    active_page_dir = dir;
+}
 
+void fix_kpage_table(void) {
     page_dir_t *dir = GET_PHYSICAL_ADDR(active_page_dir);
     page_table_t *tbl = GET_PAGE_TABLE(dir, 768);
 
-    // TODO:
-    // Do not unmap the first 1MB atleast at this point!
-    // The VGA Buffer and the multiboot structure might lie
-    // in the first 1MB
+    // unmap the first 1MB except the region occupied by VGA buffer
+    for (uint32_t i = 0; i < MB; i += PAGE_SIZE) {
+        if (i == VGA_BUFFER)
+            continue;
+        tbl->pages[i >> 12] = 0;
+    }
+
+    // fix kernel flags
     for (uint32_t i = (uint32_t)&_kernel_start; i < (uint32_t)&_data_sec;
-         i += 4096) {
+         i += PAGE_SIZE) {
         tbl->pages[i >> 12] = SET_PAGE_TABLE_ENTRY(
             CLEAR_FLAGS(tbl->pages[i >> 12], 1, 1, 1), 0, 0, 1);
     }
@@ -49,12 +57,13 @@ void fix_kpaging_flags(void) {
 
 void map_paddr_to_vaddr(uint32_t paddr, uint32_t vaddr, bool user, bool rw) {
     if (paddr & 0x00000FFF) {
-        printf("Physical address (%x) is not 4K aligned.\n");
+        printf(
+            "map_paddr_to_vaddr: Physical address (%x) is not 4K aligned.\n");
         abort();
     }
 
     if (vaddr & 0x00000FFF) {
-        printf("Virtual address (%x) is not 4K aligned.\n");
+        printf("map_paddr_to_vaddr: Virtual address (%x) is not 4K aligned.\n");
         abort();
     }
 
