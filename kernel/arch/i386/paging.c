@@ -1,5 +1,3 @@
-#include "kernel/pfa.h"
-#include "multiboot.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,7 +69,9 @@ void map_paddr_to_vaddr(uint32_t paddr, uint32_t vaddr, bool user, bool rw) {
     uint16_t pt_idx = (vaddr << 10) >> 22;
 
     page_dir_t *dir = GET_PHYSICAL_ADDR(active_page_dir);
+    dir = (page_dir_t *)((uint32_t)dir + KERNEL_VSTART);
     page_table_t *tbl = GET_PAGE_TABLE(dir, pd_idx);
+    tbl = (page_table_t *)((uint32_t)tbl + KERNEL_VSTART);
 
     tbl->pages[pt_idx] = SET_PAGE_TABLE_ENTRY(paddr, user, rw, 1);
 

@@ -28,6 +28,14 @@ void kernel_main(void) {
     printf("Hello, Kernel World.\n");
     printf("%s", "Simple OS.\n");
 
+    uint32_t *ptr = mmap(2122, 0, 1);
+    *ptr = 1;
+    ptr += 1;
+    *ptr = 2;
+    printf("ptr: %u, ptr+1: %u\n", *(ptr-1), *ptr);
+
+
+
     // Do page fault
     // uint32_t *ptr = (uint32_t *)0xA0000000;
     // uint32_t do_page_fault = *ptr;

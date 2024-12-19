@@ -102,6 +102,9 @@ uint32_t pfa_initialize(uint32_t magic, multiboot_info_t *mbi) {
     // since the frame_stack is uint32_t pointer i.e.,
     // 4 bytes in size.
     frame_stack += KERNEL_VSTART / sizeof(uint32_t);
+    // printf("frame_stack: %x, ROUND_4K(frame_stack): %x, kernel_end: %x\n",
+    //        frame_stack, ROUND_4K((uint32_t)frame_stack),
+    //        kernel_end + KERNEL_VSTART);
     return (uint32_t)frame_stack;
 }
 
