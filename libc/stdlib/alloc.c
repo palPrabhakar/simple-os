@@ -1,5 +1,7 @@
 #include "alloc.h"
 
+#include <stdio.h>
+
 #include <kernel/pfa.h>
 #include <kernel/vmm.h>
 
@@ -55,7 +57,7 @@ void split_block(block_t *blk, block_t *prev, size_t size) {
         // split
         size_t new_sz = blk->size - size - sizeof(size_t);
 
-        block_t *new_blk = (void *)blk + size;
+        block_t *new_blk = (void *)blk + size + sizeof(size_t);
         new_blk->size = new_sz;
         new_blk->next = blk->next;
         // Change the next ptr of prev blk
@@ -86,7 +88,6 @@ void merge_block(block_t *blk, block_t **prev) {
     // check if can merge with prev block to make super block
     // check if can merge with next block to make super block
     block_t *cur = head;
-    // block_t *prev = NULL;
     while (cur != NULL && cur < blk) {
         *prev = cur;
         cur = cur->next;
