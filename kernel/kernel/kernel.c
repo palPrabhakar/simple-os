@@ -3,6 +3,7 @@
 #include "multiboot.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/io.h>
 
 #include <kernel/dt.h>
@@ -35,6 +36,10 @@ void kernel_main(void) {
     printf("ptr: %u, ptr+1: %u\n", *(ptr-1), *ptr);
 
 
+    unsigned int *iptr = malloc(sizeof(unsigned int));
+    *iptr = 42;
+    printf("malloced iptr: %u\n", *iptr);
+    free(iptr);
 
     // Do page fault
     // uint32_t *ptr = (uint32_t *)0xA0000000;
